@@ -1,44 +1,115 @@
-import { verifyJWT, logActivity } from '../../../lib/auth'
-import clientPromise from '../../../lib/mongodb'
+'use client'
 
-export default async function handler(req, res) {
-  try {
-    const token = req.headers.authorization?.split(' ')[1]
-    if (!token) {
-      return res.status(401).json({ message: 'No token provided' })
-    }
+import { useState, useEffect } from 'react'
+import axios from 'axios'
+import { Toaster } from 'sonner'
+import { toast } from 'sonner'
 
-    const payload = verifyJWT(token)
-    const client = await clientPromise
-    const db = client.db('keyauth_hub')
+// Components
+import Navbar from '../components/Navbar'
+import AuthPage from '../components/AuthPage'
+import Dashboard from '../components/Dashboard'
+import Services from '../components/Services'
+import Keys from '../components/Keys'
+import Library from '../components/Library'
+import AdminPanel from '../components/AdminPanel'
 
-    if (req.method === 'POST') {
-      const { name } = req.body
-      if (!name) {
-        return res.status(400).json({ message: 'Service name is required' })
-      }
+const API = '/api'
+axios.defaults.baseURL = API
+axios.defaults.headers.common['Content-Type'] = 'application/json'
 
-      const service = {
-        id: crypto.randomUUID(),
-        name,
-        owner_email: payload.email,
-        created_at: new Date().toISOString()
-      }
+export default function Home() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [currentTab, setCurrentTab] = useState('home')
 
-      await db.collection('services').insertOne(service)
-      await logActivity('Service Created', payload.email, service.id, null, { service_name: name })
-
-      res.status(201).json(service)
-    } else if (req.method === 'GET') {
-      const query = payload.isAdmin ? {} : { owner_email: payload.email }
-      const services = await db.collection('services').find(query, { projection: { _id: 0 } }).toArray()
-      
-      res.json(services)
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    if (token) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+      fetchUserInfo()
     } else {
-      res.status(405).json({ message: 'Method not allowed' })
+      setLoading(false)
     }
-  } catch (error) {
-    console.error('Services API error:', error)
-    res.status(500).json({ message: 'Internal server error' })
+  }, [])
+
+  const fetchUserInfo = async () => {
+    try {
+      const response = await axios.get('/auth/me')
+      setUser(response.data)
+      setIsAuthenticated(true)
+    } catch (error) {
+      console.error('Failed to fetch user info:', error)
+      logout()
+    } finally {
+      setLoading(false)
+    }
   }
+
+  const login = (token, userData) => {
+    localStorage.setItem('token', token)
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+    setUser(userData)
+    setIsAuthenticated(true)
+    toast.success('Login successful!')
+  }
+
+  const logout = () => {
+    localStorage.removeItem('token')
+    delete axios.defaults.headers.common['Authorization']
+    setUser(null)
+    setIsAuthenticated(false)
+    setCurrentTab('home')
+    toast.info('Logged out successfully')
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+      </div>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <>
+        <AuthPage onLogin={login} />
+        <Toaster position="top-right" richColors />
+      </>
+    )
+  }
+
+  const renderContent = () => {
+    switch (currentTab) {
+      case 'home':
+        return <Dashboard user={user} />
+      case 'services':
+        return <Services user={user} />
+      case 'keys':
+        return <Keys user={user} />
+      case 'library':
+        return <Library user={user} />
+      case 'admin':
+        return user?.is_admin ? <AdminPanel /> : <Dashboard user={user} />
+      default:
+        return <Dashboard user={user} />
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      <Navbar 
+        user={user}
+        currentTab={currentTab}
+        setCurrentTab={setCurrentTab}
+        onLogout={logout}
+      />
+      <main className="container mx-auto px-4 py-8">
+        {renderContent()}
+      </main>
+      <Toaster position="top-right" richColors />
+    </div>
+  )
 }

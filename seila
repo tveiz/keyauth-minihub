@@ -6,21 +6,17 @@ local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 
---// Detectar se é mobile
-local isMobile = UserInputService.TouchEnabled
-local isPC = not isMobile
-
 --// ScreenGui
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Parent = CoreGui
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Name = "teste"
 
---// Menu Principal - Tamanho adaptado para mobile
+--// Menu Principal
 local MainFrame = Instance.new("Frame", ScreenGui)
 MainFrame.AnchorPoint = Vector2.new(0.5,0.5)
 MainFrame.Position = UDim2.new(0.5,0,0.5,0)
-MainFrame.Size = isMobile and UDim2.new(0,350,0,500) or UDim2.new(0,650,0,400)
+MainFrame.Size = UDim2.new(0,650,0,400)
 MainFrame.BackgroundColor3 = Color3.fromRGB(20,20,20)
 MainFrame.BorderSizePixel = 0
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0,8)
@@ -29,146 +25,95 @@ local Stroke = Instance.new("UIStroke", MainFrame)
 Stroke.Thickness = 1
 Stroke.Color = Color3.fromRGB(60,60,60)
 
---// TopBar - Mais alta para mobile
+--// TopBar
 local TopBar = Instance.new("Frame", MainFrame)
-TopBar.Size = isMobile and UDim2.new(1,0,0,45) or UDim2.new(1,0,0,35)
+TopBar.Size = UDim2.new(1,0,0,35)
 TopBar.BackgroundColor3 = Color3.fromRGB(15,15,15)
 Instance.new("UICorner", TopBar).CornerRadius = UDim.new(0,8)
 
 local Title = Instance.new("TextLabel", TopBar)
 Title.Text = "AimGodz"
-Title.Size = UDim2.new(1,-80,1,0)
+Title.Size = UDim2.new(1,-70,1,0)
 Title.Position = UDim2.new(0,10,0,0)
 Title.BackgroundTransparency = 1
 Title.TextColor3 = Color3.fromRGB(255,255,255)
 Title.Font = Enum.Font.GothamBold
-Title.TextSize = isMobile and 16 or 14
+Title.TextSize = 14
 Title.TextXAlignment = Enum.TextXAlignment.Left
 
 -- Minimizar
 local MinBtn = Instance.new("TextButton", TopBar)
-MinBtn.Size = isMobile and UDim2.new(0,40,0,40) or UDim2.new(0,35,0,35)
-MinBtn.Position = UDim2.new(1,-80,0,0)
+MinBtn.Size = UDim2.new(0,35,0,35)
+MinBtn.Position = UDim2.new(1,-70,0,0)
 MinBtn.Text = "-"
 MinBtn.BackgroundTransparency = 1
 MinBtn.TextColor3 = Color3.fromRGB(200,200,200)
 MinBtn.Font = Enum.Font.GothamBold
-MinBtn.TextSize = isMobile and 20 or 18
+MinBtn.TextSize = 18
 
 -- Fechar (X)
 local CloseBtn = Instance.new("TextButton", TopBar)
-CloseBtn.Size = isMobile and UDim2.new(0,40,0,40) or UDim2.new(0,35,0,35)
-CloseBtn.Position = UDim2.new(1,-40,0,0)
+CloseBtn.Size = UDim2.new(0,35,0,35)
+CloseBtn.Position = UDim2.new(1,-35,0,0)
 CloseBtn.Text = "X"
 CloseBtn.BackgroundTransparency = 1
 CloseBtn.TextColor3 = Color3.fromRGB(255,100,100)
 CloseBtn.Font = Enum.Font.GothamBold
-CloseBtn.TextSize = isMobile and 18 or 16
+CloseBtn.TextSize = 18
 CloseBtn.MouseButton1Click:Connect(function()
     ScreenGui:Destroy()
 end)
 
 -- Conteúdo
 local Content = Instance.new("Frame", MainFrame)
-Content.Position = isMobile and UDim2.new(0,0,0,45) or UDim2.new(0,150,0,35)
-Content.Size = isMobile and UDim2.new(1,0,1,-45) or UDim2.new(1,-150,1,-35)
+Content.Position = UDim2.new(0,150,0,35)
+Content.Size = UDim2.new(1,-150,1,-35)
 Content.BackgroundTransparency = 1
 
--- Tabs (apenas para PC)
-local TabList
-if not isMobile then
-    TabList = Instance.new("Frame", MainFrame)
-    TabList.Position = UDim2.new(0,0,0,35)
-    TabList.Size = UDim2.new(0,150,1,-35)
-    TabList.BackgroundColor3 = Color3.fromRGB(25,25,25)
-    Instance.new("UICorner", TabList).CornerRadius = UDim.new(0,8)
+-- Tabs
+local TabList = Instance.new("Frame", MainFrame)
+TabList.Position = UDim2.new(0,0,0,35)
+TabList.Size = UDim2.new(0,150,1,-35)
+TabList.BackgroundColor3 = Color3.fromRGB(25,25,25)
+Instance.new("UICorner", TabList).CornerRadius = UDim.new(0,8)
 
-    local TabLayout = Instance.new("UIListLayout", TabList)
-    TabLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    TabLayout.Padding = UDim.new(0,5)
-end
+local TabLayout = Instance.new("UIListLayout", TabList)
+TabLayout.SortOrder = Enum.SortOrder.LayoutOrder
+TabLayout.Padding = UDim.new(0,5)
 
--- Sistema de abas adaptado para mobile
-local currentTab = nil
-local tabs = {}
-
--- Criador de Tabs adaptado
+-- Criador de Tabs
 local function CreateTab(Name)
-    if isMobile then
-        -- Para mobile: criar botão na parte superior
-        local Button = Instance.new("TextButton", TopBar)
-        Button.Size = UDim2.new(0,80,1,0)
-        Button.Position = UDim2.new(0,70 + (#tabs * 85),0,0)
-        Button.Text = Name
-        Button.BackgroundTransparency = 1
-        Button.TextColor3 = Color3.fromRGB(200,200,200)
-        Button.Font = Enum.Font.GothamBold
-        Button.TextSize = 12
-        Button.BorderSizePixel = 0
-        
-        local TabPage = Instance.new("ScrollingFrame", Content)
-        TabPage.Size = UDim2.new(1,0,1,0)
-        TabPage.BackgroundTransparency = 1
-        TabPage.ScrollBarThickness = 4
-        TabPage.Visible = false
-        TabPage.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    local Button = Instance.new("TextButton", TabList)
+    Button.Size = UDim2.new(1,-10,0,30)
+    Button.Text = Name
+    Button.BackgroundColor3 = Color3.fromRGB(30,30,30)
+    Button.TextColor3 = Color3.fromRGB(255,255,255)
+    Button.Font = Enum.Font.GothamBold
+    Button.TextSize = 13
+    Button.BorderSizePixel = 0
+    Instance.new("UICorner", Button).CornerRadius = UDim.new(0,6)
 
-        local UIList = Instance.new("UIListLayout", TabPage)
-        UIList.SortOrder = Enum.SortOrder.LayoutOrder
-        UIList.Padding = UDim.new(0,8)
+    local TabPage = Instance.new("ScrollingFrame", Content)
+    TabPage.Size = UDim2.new(1,0,1,0)
+    TabPage.BackgroundTransparency = 1
+    TabPage.ScrollBarThickness = 4
+    TabPage.Visible = false
+    TabPage.AutomaticCanvasSize = Enum.AutomaticSize.Y
 
-        Button.MouseButton1Click:Connect(function()
-            for _,v in pairs(Content:GetChildren()) do
-                if v:IsA("ScrollingFrame") then
-                    v.Visible = false
-                end
+    local UIList = Instance.new("UIListLayout", TabPage)
+    UIList.SortOrder = Enum.SortOrder.LayoutOrder
+    UIList.Padding = UDim.new(0,5)
+
+    Button.MouseButton1Click:Connect(function()
+        for _,v in pairs(Content:GetChildren()) do
+            if v:IsA("ScrollingFrame") then
+                v.Visible = false
             end
-            TabPage.Visible = true
-            currentTab = TabPage
-            
-            -- Atualizar cores dos botões
-            for btnName, btn in pairs(tabs) do
-                btn.TextColor3 = Color3.fromRGB(200,200,200)
-            end
-            Button.TextColor3 = Color3.fromRGB(0,255,140)
-        end)
+        end
+        TabPage.Visible = true
+    end)
 
-        tabs[Name] = Button
-        return TabPage
-    else
-        -- Para PC: sistema original
-        local Button = Instance.new("TextButton", TabList)
-        Button.Size = UDim2.new(1,-10,0,30)
-        Button.Text = Name
-        Button.BackgroundColor3 = Color3.fromRGB(30,30,30)
-        Button.TextColor3 = Color3.fromRGB(255,255,255)
-        Button.Font = Enum.Font.GothamBold
-        Button.TextSize = 13
-        Button.BorderSizePixel = 0
-        Instance.new("UICorner", Button).CornerRadius = UDim.new(0,6)
-
-        local TabPage = Instance.new("ScrollingFrame", Content)
-        TabPage.Size = UDim2.new(1,0,1,0)
-        TabPage.BackgroundTransparency = 1
-        TabPage.ScrollBarThickness = 4
-        TabPage.Visible = false
-        TabPage.AutomaticCanvasSize = Enum.AutomaticSize.Y
-
-        local UIList = Instance.new("UIListLayout", TabPage)
-        UIList.SortOrder = Enum.SortOrder.LayoutOrder
-        UIList.Padding = UDim.new(0,5)
-
-        Button.MouseButton1Click:Connect(function()
-            for _,v in pairs(Content:GetChildren()) do
-                if v:IsA("ScrollingFrame") then
-                    v.Visible = false
-                end
-            end
-            TabPage.Visible = true
-        end)
-
-        return TabPage
-    end
+    return TabPage
 end
 
 --// Criar Tabs
@@ -178,34 +123,29 @@ local TabCombate = CreateTab("Combate")
 local TabVisual = CreateTab("Visual")
 local TabConfig = CreateTab("Config")
 
--- Configurar primeira aba como ativa no mobile
-if isMobile and tabs["Início"] then
-    tabs["Início"].TextColor3 = Color3.fromRGB(0,255,140)
-end
-
 --// Funções de Componentes
 
 --// SISTEMA TAB INÍCIO
 local function CreateInfoLabel(Parent, Text)
     local Label = Instance.new("TextLabel", Parent)
-    Label.Size = UDim2.new(1,-10,0,isMobile and 30 or 25)
+    Label.Size = UDim2.new(1,-10,0,25)
     Label.BackgroundTransparency = 1
     Label.Text = Text
     Label.TextColor3 = Color3.fromRGB(255,255,255)
     Label.Font = Enum.Font.Gotham
-    Label.TextSize = isMobile and 14 or 12
+    Label.TextSize = 12
     Label.TextXAlignment = Enum.TextXAlignment.Left
     return Label
 end
 
 -- Título do Menu
 local TituloInicio = Instance.new("TextLabel", TabInicio)
-TituloInicio.Size = UDim2.new(1,-10,0,isMobile and 50 or 40)
+TituloInicio.Size = UDim2.new(1,-10,0,40)
 TituloInicio.BackgroundTransparency = 1
 TituloInicio.Text = "AimGodz"
 TituloInicio.TextColor3 = Color3.fromRGB(0,255,140)
 TituloInicio.Font = Enum.Font.GothamBold
-TituloInicio.TextSize = isMobile and 22 or 18
+TituloInicio.TextSize = 18
 TituloInicio.TextXAlignment = Enum.TextXAlignment.Center
 
 -- Informações do Desenvolvedor
@@ -257,7 +197,7 @@ end)
 -- Status do Menu
 CreateInfoLabel(TabInicio, "✅ Status: Menu Carregado com Sucesso!")
 CreateInfoLabel(TabInicio, "🔧 Total de Funções: 20+")
-CreateInfoLabel(TabInicio, "📱 Plataforma: " .. (isMobile and "Mobile" or "PC"))
+CreateInfoLabel(TabInicio, "📱 Plataforma: " .. (UserInputService.TouchEnabled and "Mobile" or "PC"))
 
 -- Espaçamento
 local espaco = Instance.new("Frame", TabInicio)
@@ -266,18 +206,18 @@ espaco.BackgroundTransparency = 1
 
 -- Créditos Finais
 local creditos = Instance.new("TextLabel", TabInicio)
-creditos.Size = UDim2.new(1,-10,0,isMobile and 40 or 30)
+creditos.Size = UDim2.new(1,-10,0,30)
 creditos.BackgroundTransparency = 1
 creditos.Text = "by thziin_01"
 creditos.TextColor3 = Color3.fromRGB(255,255,255)
 creditos.Font = Enum.Font.GothamBold
-creditos.TextSize = isMobile and 16 or 14
+creditos.TextSize = 14
 creditos.TextXAlignment = Enum.TextXAlignment.Center
 
--- 🔘 Toggle moderno (Switch) - Adaptado para mobile
+-- 🔘 Toggle moderno (Switch)
 local function AddToggle(Parent, Text, Callback)
     local Frame = Instance.new("Frame", Parent)
-    Frame.Size = UDim2.new(1,-10,0,isMobile and 45 or 35)
+    Frame.Size = UDim2.new(1,-10,0,35)
     Frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
     Instance.new("UICorner", Frame).CornerRadius = UDim.new(0,6)
 
@@ -288,75 +228,59 @@ local function AddToggle(Parent, Text, Callback)
     Label.BackgroundTransparency = 1
     Label.TextColor3 = Color3.fromRGB(255,255,255)
     Label.Font = Enum.Font.Gotham
-    Label.TextSize = isMobile and 15 or 13
+    Label.TextSize = 13
     Label.TextXAlignment = Enum.TextXAlignment.Left
 
-    local Switch = Instance.new("TextButton", Frame)
-    Switch.Size = UDim2.new(0,isMobile and 50 or 40,0,isMobile and 25 or 20)
-    Switch.Position = UDim2.new(1,-(isMobile and 60 or 50),0.5,-(isMobile and 12.5 or 10))
+    local Switch = Instance.new("Frame", Frame)
+    Switch.Size = UDim2.new(0,40,0,20)
+    Switch.Position = UDim2.new(1,-50,0.5,-10)
     Switch.BackgroundColor3 = Color3.fromRGB(60,60,60)
-    Switch.Text = ""
-    Switch.AutoButtonColor = false
     Instance.new("UICorner", Switch).CornerRadius = UDim.new(1,0)
 
     local Knob = Instance.new("Frame", Switch)
-    Knob.Size = UDim2.new(0,isMobile and 21 or 18,0,isMobile and 21 or 18)
-    Knob.Position = UDim2.new(0,2,0.5,-(isMobile and 10.5 or 9))
+    Knob.Size = UDim2.new(0,18,0,18)
+    Knob.Position = UDim2.new(0,1,0.5,-9)
     Knob.BackgroundColor3 = Color3.fromRGB(200,200,200)
     Instance.new("UICorner", Knob).CornerRadius = UDim.new(1,0)
 
     local Enabled = false
-    
-    local function updateToggle()
-        TweenService:Create(Knob, TweenInfo.new(0.2), {
-            Position = Enabled and UDim2.new(1,-(isMobile and 23 or 19),0.5,-(isMobile and 10.5 or 9)) or UDim2.new(0,2,0.5,-(isMobile and 10.5 or 9)),
-            BackgroundColor3 = Enabled and Color3.fromRGB(0,200,100) or Color3.fromRGB(200,200,200)
-        }):Play()
-        TweenService:Create(Switch, TweenInfo.new(0.2), {
-            BackgroundColor3 = Enabled and Color3.fromRGB(0,120,60) or Color3.fromRGB(60,60,60)
-        }):Play()
-        if Callback then
-            Callback(Enabled)
+    Switch.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            Enabled = not Enabled
+            TweenService:Create(Knob, TweenInfo.new(0.2), {
+                Position = Enabled and UDim2.new(1,-19,0.5,-9) or UDim2.new(0,1,0.5,-9),
+                BackgroundColor3 = Enabled and Color3.fromRGB(0,200,100) or Color3.fromRGB(200,200,200)
+            }):Play()
+            TweenService:Create(Switch, TweenInfo.new(0.2), {
+                BackgroundColor3 = Enabled and Color3.fromRGB(0,120,60) or Color3.fromRGB(60,60,60)
+            }):Play()
+            if Callback then
+                Callback(Enabled)
+            end
         end
-    end
-
-    Switch.MouseButton1Click:Connect(function()
-        Enabled = not Enabled
-        updateToggle()
     end)
     
-    -- Suporte a toque para mobile
-    if isMobile then
-        Switch.TouchTap:Connect(function()
-            Enabled = not Enabled
-            updateToggle()
-        end)
-    end
-    
-    return {Set = function(state) 
-        Enabled = state 
-        updateToggle()
-    end}
+    return {Set = function(state) Enabled = state end}
 end
 
--- Slider funcional - Adaptado para mobile
+-- Slider funcional
 local function AddSlider(Parent, Text, Min, Max, Default, Callback)
     local Frame = Instance.new("Frame", Parent)
-    Frame.Size = UDim2.new(1,-10,0,isMobile and 70 or 50)
+    Frame.Size = UDim2.new(1,-10,0,50)
     Frame.BackgroundTransparency = 1
 
     local Label = Instance.new("TextLabel", Frame)
     Label.Text = Text.." ["..Default.."]"
-    Label.Size = UDim2.new(1,0,0,isMobile and 25 or 20)
+    Label.Size = UDim2.new(1,0,0,20)
     Label.TextColor3 = Color3.fromRGB(255,255,255)
     Label.BackgroundTransparency = 1
     Label.Font = Enum.Font.Gotham
-    Label.TextSize = isMobile and 14 or 12
+    Label.TextSize = 12
     Label.TextXAlignment = Enum.TextXAlignment.Left
 
     local BarBack = Instance.new("TextButton", Frame)
-    BarBack.Size = UDim2.new(1,0,0,isMobile and 12 or 8)
-    BarBack.Position = UDim2.new(0,0,0,isMobile and 40 or 30)
+    BarBack.Size = UDim2.new(1,0,0,8)
+    BarBack.Position = UDim2.new(0,0,0,30)
     BarBack.BackgroundColor3 = Color3.fromRGB(50,50,50)
     BarBack.AutoButtonColor = false
     BarBack.Text = ""
@@ -368,8 +292,8 @@ local function AddSlider(Parent, Text, Min, Max, Default, Callback)
     Instance.new("UICorner", FillBar).CornerRadius = UDim.new(0,4)
 
     local Knob = Instance.new("ImageButton", BarBack)
-    Knob.Size = UDim2.new(0,isMobile and 20 or 16,0,isMobile and 20 or 16)
-    Knob.Position = UDim2.new(FillBar.Size.X.Scale,-(isMobile and 10 or 8),0.5,-(isMobile and 10 or 8))
+    Knob.Size = UDim2.new(0,16,0,16)
+    Knob.Position = UDim2.new(FillBar.Size.X.Scale,-8,0.5,-8)
     Knob.BackgroundColor3 = Color3.fromRGB(255,255,255)
     Knob.Image = ""
     Knob.AutoButtonColor = false
@@ -380,78 +304,47 @@ local function AddSlider(Parent, Text, Min, Max, Default, Callback)
     local function setPercent(percent)
         percent = math.clamp(percent,0,1)
         FillBar.Size = UDim2.new(percent,0,1,0)
-        Knob.Position = UDim2.new(percent,-(isMobile and 10 or 8),0.5,-(isMobile and 10 or 8))
+        Knob.Position = UDim2.new(percent,-8,0.5,-8)
         local Value = math.floor(Min + (Max-Min)*percent)
         Label.Text = Text.." ["..Value.."]"
         if Callback then Callback(Value) end
     end
 
-    local function handleInput(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or (isMobile and input.UserInputType == Enum.UserInputType.Touch) then
-            draggingSlider = true
-            local inputPos
-            if isMobile then
-                inputPos = input.Position
-            else
-                inputPos = UserInputService:GetMouseLocation()
-            end
-            local relative = (inputPos.X - BarBack.AbsolutePosition.X)/BarBack.AbsoluteSize.X
-            setPercent(relative)
-        end
-    end
-
-    BarBack.InputBegan:Connect(handleInput)
-    Knob.InputBegan:Connect(handleInput)
-    
-    UserInputService.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or (isMobile and input.UserInputType == Enum.UserInputType.Touch) then 
-            draggingSlider = false 
-        end
+    BarBack.MouseButton1Down:Connect(function()
+        draggingSlider = true
+        local mouseX = UserInputService:GetMouseLocation().X
+        local relative = (mouseX - BarBack.AbsolutePosition.X)/BarBack.AbsoluteSize.X
+        setPercent(relative)
     end)
-    
+    Knob.MouseButton1Down:Connect(function() draggingSlider = true end)
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then draggingSlider = false end
+    end)
     RunService.RenderStepped:Connect(function()
         if draggingSlider then
-            local inputPos
-            if isMobile and UserInputService:GetFocusedTextBox() == nil then
-                local touch = UserInputService:GetTouchInputs()
-                if #touch > 0 then
-                    inputPos = touch[#touch].Position
-                end
-            else
-                inputPos = UserInputService:GetMouseLocation()
-            end
-            
-            if inputPos then
-                local relative = (inputPos.X - BarBack.AbsolutePosition.X)/BarBack.AbsoluteSize.X
-                setPercent(relative)
-            end
+            local mouseX = UserInputService:GetMouseLocation().X
+            local relative = (mouseX - BarBack.AbsolutePosition.X)/BarBack.AbsoluteSize.X
+            setPercent(relative)
         end
     end)
 
     setPercent((Default-Min)/(Max-Min))
 end
 
--- Button funcional - Adaptado para mobile
+-- Button funcional
 local function AddButton(Parent, Text, Callback)
     local Btn = Instance.new("TextButton", Parent)
-    Btn.Size = UDim2.new(1,-10,0,isMobile and 40 or 30)
+    Btn.Size = UDim2.new(1,-10,0,30)
     Btn.Text = Text
     Btn.BackgroundColor3 = Color3.fromRGB(45,45,45)
     Btn.TextColor3 = Color3.fromRGB(255,255,255)
     Btn.Font = Enum.Font.Gotham
-    Btn.TextSize = isMobile and 15 or 13
+    Btn.TextSize = 13
     Instance.new("UICorner", Btn).CornerRadius = UDim.new(0,6)
 
     Btn.MouseButton1Click:Connect(function()
         if Callback then Callback() end
     end)
-    
-    -- Suporte a toque para mobile
-    if isMobile then
-        Btn.TouchTap:Connect(function()
-            if Callback then Callback() end
-        end)
-    end
 end
 
 --// SISTEMA HIT BOX
@@ -1258,7 +1151,7 @@ local function iniciarFPSPingUI()
     Frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     Frame.BackgroundTransparency = 0.6
     Frame.BorderSizePixel = 0
-    Frame.Size = UDim2.new(0, isMobile and 160 or 190, 0, isMobile and 35 or 45)
+    Frame.Size = UDim2.new(0, 190, 0, 45)
     Frame.Position = UDim2.new(0.75, 0, 0.9, 0)
     Frame.AnchorPoint = Vector2.new(0.5, 0)
     Frame.Parent = ScreenGui
@@ -1419,41 +1312,40 @@ end
 local AimbotPCAtivo = false
 local AimbotPCToggle
 
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+local Mouse = LocalPlayer:GetMouse()
+
+local AimbotAtivo = true
+local AnguloMaximo = math.rad(20)
+
+local function getFOV(p0, p1, deg)
+    local x1, y1, z1 = p0:ToOrientation()
+    local cf = CFrame.new(p0.p, p1.p)
+    local x2, y2, z2 = cf:ToOrientation()
+    if deg then
+        return Vector3.new(math.deg(x1 - x2), math.deg(y1 - y2), math.deg(z1 - z2))
+    else
+        return Vector3.new((x1 - x2), (y1 - y2), (z1 - z2))
+    end
+end
+
+local function checkFOV(part)
+    local fov = getFOV(Camera.CFrame, part.CFrame)
+    local angle = math.abs(fov.X) + math.abs(fov.Y)
+    return angle
+end
+
+local function aimAt(part)
+    Camera.CFrame = CFrame.new(Camera.CFrame.Position, part.Position)
+end
+
+local Aiming = false
+local AimPart = nil
+
 local function iniciarAimbotPC()
-    if isMobile then return end -- Só funciona em PC
-    
-    local Players = game:GetService("Players")
-    local RunService = game:GetService("RunService")
-    local LocalPlayer = Players.LocalPlayer
-    local Camera = workspace.CurrentCamera
-    local Mouse = LocalPlayer:GetMouse()
-
-    local AnguloMaximo = math.rad(20)
-
-    local function getFOV(p0, p1, deg)
-        local x1, y1, z1 = p0:ToOrientation()
-        local cf = CFrame.new(p0.p, p1.p)
-        local x2, y2, z2 = cf:ToOrientation()
-        if deg then
-            return Vector3.new(math.deg(x1 - x2), math.deg(y1 - y2), math.deg(z1 - z2))
-        else
-            return Vector3.new((x1 - x2), (y1 - y2), (z1 - z2))
-        end
-    end
-
-    local function checkFOV(part)
-        local fov = getFOV(Camera.CFrame, part.CFrame)
-        local angle = math.abs(fov.X) + math.abs(fov.Y)
-        return angle
-    end
-
-    local function aimAt(part)
-        Camera.CFrame = CFrame.new(Camera.CFrame.Position, part.Position)
-    end
-
-    local Aiming = false
-    local AimPart = nil
-
     Mouse.Button2Down:Connect(function()
         if not AimbotPCAtivo then return end
         Aiming = true
@@ -1503,7 +1395,7 @@ local function iniciarAimbotMobile()
     local Camera = workspace.CurrentCamera
     
     aimbotMobileConnection = RunService.RenderStepped:Connect(function()
-        if AimbotMobileAtivo and isMobile then
+        if AimbotMobileAtivo then
             local melhorAlvo = nil
             local menorDistancia = math.huge
             local posicaoCamera = Camera.CFrame.Position
@@ -1745,27 +1637,21 @@ AddToggle(TabCombate, "Anti Revistar", function(v)
     end
 end)
 
--- Aimbot PC (apenas para PC)
-if not isMobile then
-    AimbotPCToggle = AddToggle(TabCombate, "Aimbot PC", function(v)
-        AimbotPCAtivo = v
-        if v then
-            iniciarAimbotPC()
-        end
-    end)
-end
+AimbotPCToggle = AddToggle(TabCombate, "Aimbot PC", function(v)
+    AimbotPCAtivo = v
+    if v then
+        iniciarAimbotPC()
+    end
+end)
 
--- Aimbot Mobile (apenas para mobile)
-if isMobile then
-    AimbotMobileToggle = AddToggle(TabCombate, "Aimbot Mobile", function(v)
-        AimbotMobileAtivo = v
-        if v then
-            iniciarAimbotMobile()
-        else
-            pararAimbotMobile()
-        end
-    end)
-end
+AimbotMobileToggle = AddToggle(TabCombate, "Aimbot Mobile", function(v)
+    AimbotMobileAtivo = v
+    if v then
+        iniciarAimbotMobile()
+    else
+        pararAimbotMobile()
+    end
+end)
 
 TPKillToggle = AddToggle(TabCombate, "TP Kill", function(v)
     TPKillAtivo = v
@@ -1868,6 +1754,7 @@ AddToggle(TabVisual, "ESP Line", function(v)
     end
 end)
 
+
 -- ESP Box 2D
 AddToggle(TabVisual, "ESP Box 2D", function(v)
     ESPBox2DAtivo = v
@@ -1923,8 +1810,8 @@ AddButton(TabVisual, "Teleportador", function()
     screenGui.Parent = game:GetService("CoreGui")
 
     local Frame = Instance.new("Frame")
-    Frame.Size = UDim2.new(0, isMobile and 280 or 300, 0, isMobile and 130 or 150)
-    Frame.Position = UDim2.new(0.5, -(isMobile and 140 or 150), 0.5, -(isMobile and 65 or 75))
+    Frame.Size = UDim2.new(0, 300, 0, 150)
+    Frame.Position = UDim2.new(0.5, -150, 0.5, -75)
     Frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
     Frame.BorderSizePixel = 0
     Frame.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -1934,22 +1821,22 @@ AddButton(TabVisual, "Teleportador", function()
     corner.CornerRadius = UDim.new(0, 10)
 
     local title = Instance.new("TextLabel")
-    title.Size = UDim2.new(1, 0, 0, isMobile and 25 or 30)
+    title.Size = UDim2.new(1, 0, 0, 30)
     title.BackgroundTransparency = 1
     title.Text = "Teleportador"
     title.TextColor3 = Color3.new(1, 1, 1)
     title.Font = Enum.Font.GothamBold
-    title.TextSize = isMobile and 18 or 20
+    title.TextSize = 20
     title.Parent = Frame
 
     local closeButton = Instance.new("TextButton")
-    closeButton.Size = UDim2.new(0, isMobile and 25 or 30, 0, isMobile and 25 or 30)
-    closeButton.Position = UDim2.new(1, -(isMobile and 30 or 35), 0, 0)
+    closeButton.Size = UDim2.new(0, 30, 0, 30)
+    closeButton.Position = UDim2.new(1, -35, 0, 0)
     closeButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
     closeButton.Text = "X"
     closeButton.TextColor3 = Color3.new(1, 1, 1)
     closeButton.Font = Enum.Font.GothamBold
-    closeButton.TextSize = isMobile and 16 or 20
+    closeButton.TextSize = 20
     closeButton.Parent = Frame
 
     closeButton.MouseButton1Click:Connect(function()
@@ -1957,27 +1844,27 @@ AddButton(TabVisual, "Teleportador", function()
     end)
 
     local TextBox = Instance.new("TextBox")
-    TextBox.Size = UDim2.new(0.9, 0, 0, isMobile and 35 or 40)
-    TextBox.Position = UDim2.new(0.05, 0, 0, isMobile and 40 or 50)
+    TextBox.Size = UDim2.new(0.9, 0, 0, 40)
+    TextBox.Position = UDim2.new(0.05, 0, 0, 50)
     TextBox.PlaceholderText = "Digite o nome ou display name"
     TextBox.ClearTextOnFocus = false
     TextBox.TextColor3 = Color3.new(1, 1, 1)
     TextBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     TextBox.Font = Enum.Font.Gotham
-    TextBox.TextSize = isMobile and 16 or 18
+    TextBox.TextSize = 18
     TextBox.Parent = Frame
 
     local corner2 = Instance.new("UICorner", TextBox)
     corner2.CornerRadius = UDim.new(0, 8)
 
     local teleportButton = Instance.new("TextButton")
-    teleportButton.Size = UDim2.new(0.5, 0, 0, isMobile and 35 or 40)
-    teleportButton.Position = UDim2.new(0.25, 0, 0, isMobile and 85 or 100)
+    teleportButton.Size = UDim2.new(0.5, 0, 0, 40)
+    teleportButton.Position = UDim2.new(0.25, 0, 0, 100)
     teleportButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
     teleportButton.Text = "Teleportar"
     teleportButton.TextColor3 = Color3.new(1, 1, 1)
     teleportButton.Font = Enum.Font.GothamBold
-    teleportButton.TextSize = isMobile and 16 or 20
+    teleportButton.TextSize = 20
     teleportButton.Parent = Frame
 
     local corner3 = Instance.new("UICorner", teleportButton)
@@ -2033,20 +1920,6 @@ AddButton(TabVisual, "Teleportador", function()
         end
     end)
 
-    -- Suporte a toque para mobile
-    if isMobile then
-        teleportButton.TouchTap:Connect(function()
-            local text = TextBox.Text
-            if text == "" or not text then return end
-            local success, msg = teleportToPlayer(text)
-            if success then
-                print("[TeleportUI] " .. msg)
-            else
-                warn("[TeleportUI] " .. msg)
-            end
-        end)
-    end
-
     local dragging, dragInput, dragStart, startPos
 
     local function update(input)
@@ -2060,7 +1933,7 @@ AddButton(TabVisual, "Teleportador", function()
     end
 
     Frame.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or (isMobile and input.UserInputType == Enum.UserInputType.Touch) then
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
             dragging = true
             dragStart = input.Position
             startPos = Frame.Position
@@ -2209,8 +2082,8 @@ AddButton(TabConfig, "Anti Lag", function()
     gui.Name = "AntiLagUI"
 
     local frame = Instance.new("Frame", gui)
-    frame.Size = UDim2.new(0, isMobile and 200 or 220, 0, isMobile and 40 or 50)
-    frame.Position = UDim2.new(0.5, -(isMobile and 100 or 110), 0, 20)
+    frame.Size = UDim2.new(0, 220, 0, 50)
+    frame.Position = UDim2.new(0.5, -110, 0, 20)
     frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     frame.BackgroundTransparency = 0.25
     frame.BorderSizePixel = 0
@@ -2223,7 +2096,7 @@ AddButton(TabConfig, "Anti Lag", function()
     label.BackgroundTransparency = 1
     label.Text = "⚙️ Anti-Lag Supremo Ativado (60+ FPS)"
     label.TextColor3 = Color3.new(1, 1, 1)
-    label.TextSize = isMobile and 14 or 16
+    label.TextSize = 16
     label.Font = Enum.Font.GothamBold
 
     local lastCheck = tick()
@@ -2252,49 +2125,35 @@ AddToggle(TabConfig, "Mostrar FPS/Ping", function(v)
     end
 end)
 
---// Arrastar Menu - Adaptado para mobile
+--// Arrastar Menu
 local dragging, dragInput, dragStart, startPos
-
-local function handleDragInput(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or (isMobile and input.UserInputType == Enum.UserInputType.Touch) then
-        dragging = true
-        dragStart = input.Position
-        startPos = MainFrame.Position
-        
+TopBar.InputBegan:Connect(function(input)
+    if input.UserInputType==Enum.UserInputType.MouseButton1 then
+        dragging=true
+        dragStart=input.Position
+        startPos=MainFrame.Position
         input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then 
-                dragging = false 
-            end
+            if input.UserInputState==Enum.UserInputState.End then dragging=false end
         end)
     end
-end
-
-local function updateDrag(input)
-    if input == dragInput and dragging then
-        local delta = input.Position - dragStart
-        MainFrame.Position = UDim2.new(
-            startPos.X.Scale, 
-            startPos.X.Offset + delta.X,
-            startPos.Y.Scale, 
-            startPos.Y.Offset + delta.Y
-        )
-    end
-end
-
-TopBar.InputBegan:Connect(handleDragInput)
+end)
 TopBar.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement then 
-        dragInput = input 
+    if input.UserInputType==Enum.UserInputType.MouseMovement then dragInput=input end
+end)
+UserInputService.InputChanged:Connect(function(input)
+    if input==dragInput and dragging then
+        local delta=input.Position-dragStart
+        MainFrame.Position=UDim2.new(startPos.X.Scale,startPos.X.Offset+delta.X,startPos.Y.Scale,startPos.Y.Offset+delta.Y)
     end
 end)
-UserInputService.InputChanged:Connect(updateDrag)
 
 --// Sistema adaptativo Mobile/PC para minimizar/reabrir
+local isMobile = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
 
 -- Retângulo de reabrir (arrastável)
 local ReopenFrame = Instance.new("Frame")
-ReopenFrame.Size = UDim2.new(0, isMobile and 100 or 120, 0, isMobile and 35 or 40)
-ReopenFrame.Position = UDim2.new(1, -(isMobile and 110 or 140), 0, 20)
+ReopenFrame.Size = UDim2.new(0, 120, 0, 40)
+ReopenFrame.Position = UDim2.new(1, -140, 0, 20)
 ReopenFrame.BackgroundColor3 = Color3.fromRGB(50, 150, 250)
 ReopenFrame.Visible = false
 ReopenFrame.Parent = ScreenGui
@@ -2306,62 +2165,74 @@ ReopenText.Text = "👍 Reabrir menu"
 ReopenText.TextColor3 = Color3.fromRGB(255, 255, 255)
 ReopenText.BackgroundTransparency = 1
 ReopenText.Font = Enum.Font.GothamBold
-ReopenText.TextSize = isMobile and 14 or 16
+ReopenText.TextSize = 16
 ReopenText.Parent = ReopenFrame
 
--- Sistema de minimizar/reabrir
-MinBtn.MouseButton1Click:Connect(function()
-    MainFrame.Visible = false
-    ReopenFrame.Visible = true
-end)
-
--- Controle de arraste/clique para retângulo mobile
-local draggingReopen = false
-local dragStartReopen, startPosReopen
-local movedReopen = false
-
-local function updateDragReopen(input)
-    local delta = input.Position - dragStartReopen
-    ReopenFrame.Position = UDim2.new(
-        startPosReopen.X.Scale, startPosReopen.X.Offset + delta.X,
-        startPosReopen.Y.Scale, startPosReopen.Y.Offset + delta.Y
-    )
-    if math.abs(delta.X) > 3 or math.abs(delta.Y) > 3 then
-        movedReopen = true
-    end
-end
-
-ReopenFrame.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        draggingReopen = true
-        dragStartReopen = input.Position
-        startPosReopen = ReopenFrame.Position
-        movedReopen = false
-    end
-end)
-
-ReopenFrame.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        draggingReopen = false
-        if not movedReopen then
-            MainFrame.Visible = true
-            ReopenFrame.Visible = false
-        end
-    end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-    if draggingReopen and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-        updateDragReopen(input)
-    end
-end)
-
--- Suporte a toque para o botão minimizar no mobile
 if isMobile then
-    MinBtn.TouchTap:Connect(function()
+    MinBtn.MouseButton1Click:Connect(function()
         MainFrame.Visible = false
         ReopenFrame.Visible = true
     end)
+else
+    local minimized = false
+
+    local function toggleMenu()
+        minimized = not minimized
+        MainFrame.Visible = not minimized
+        if ReopenFrame then
+            ReopenFrame.Visible = false
+        end
+    end
+
+    UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        if not gameProcessed and input.KeyCode == Enum.KeyCode.K then
+            toggleMenu()
+        end
+    end)
 end
 
-print("✅ Menu AimGodz carregado com sucesso! Plataforma: " .. (isMobile and "Mobile" or "PC"))
+--// Controle de arraste/clique para retângulo mobile
+local draggingReopen = false
+local dragStart, startPos
+local moved = false
+
+local function updateDrag(input)
+	local delta = input.Position - dragStart
+	ReopenFrame.Position = UDim2.new(
+		startPos.X.Scale, startPos.X.Offset + delta.X,
+		startPos.Y.Scale, startPos.Y.Offset + delta.Y
+	)
+	if math.abs(delta.X) > 3 or math.abs(delta.Y) > 3 then
+		moved = true
+	end
+end
+
+ReopenFrame.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		draggingReopen = true
+		dragStart = input.Position
+		startPos = ReopenFrame.Position
+		moved = false
+	end
+end)
+
+ReopenFrame.InputEnded:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		draggingReopen = false
+		if not moved then
+			MainFrame.Visible = true
+			ReopenFrame.Visible = false
+		end
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+	if draggingReopen and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+		updateDrag(input)
+	end
+end)
+
+MinBtn.MouseButton1Click:Connect(function()
+	MainFrame.Visible = false
+	ReopenFrame.Visible = true
+end)
